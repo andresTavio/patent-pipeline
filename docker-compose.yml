@@ -1,0 +1,36 @@
+version: '3.8'
+services:
+    postgres:
+        image: postgres:12
+        env_file:
+            - .env
+        volumes:
+              - ./pgdata:/var/lib/postgresql/data/pgdata
+
+    webserver:
+        image: apache/airflow:2.0.0-python3.8
+        entrypoint: ./scripts/entrypoint.sh
+        restart: always
+        depends_on:
+            - postgres
+        env_file:
+            - .env
+        volumes:
+            - ./dags:/opt/airflow/dags
+            - ./logs:/opt/airflow/logs
+            - ./scripts:/opt/airflow/scripts
+        ports:
+            - "8080:8080"
+
+    scheduler:
+        image: apache/airflow:2.0.0-python3.8
+        command: scheduler
+        restart: always
+        depends_on:
+            - postgres
+            - webserver
+        env_file:
+            - .env
+        volumes:
+            - ./dags:/opt/airflow/dags
+            - ./logs:/opt/airflow/logs
