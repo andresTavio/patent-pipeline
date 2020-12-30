@@ -8,7 +8,7 @@ services:
               - ./pgdata:/var/lib/postgresql/data/pgdata
 
     webserver:
-        image: apache/airflow:2.0.0-python3.8
+        build: .
         entrypoint: ./scripts/entrypoint.sh
         restart: always
         depends_on:
@@ -23,7 +23,7 @@ services:
             - "8080:8080"
 
     scheduler:
-        image: apache/airflow:2.0.0-python3.8
+        build: .
         command: scheduler
         restart: always
         depends_on:
