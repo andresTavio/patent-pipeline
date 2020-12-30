@@ -4,12 +4,6 @@ AIRFLOW_USER_NAME="admin"
 AIRFLOW_FIRST_NAME=AIRFLOW_USER_NAME
 AIRFLOW_LAST_NAME=AIRFLOW_USER_NAME
 
-# if psql -lqt | cut -d \| -f 1 | grep -qw $POSTGRES_DB; then
-#     echo "Database already initialized"
-#     else
-#         airflow db init
-# fi
-
 airflow db upgrade
 
 if airflow users list | grep -q $AIRFLOW_USER_NAME; then
