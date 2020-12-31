@@ -1,16 +1,16 @@
+from airflow.hooks.base_hook import BaseHook
 import requests
 import json
 
-base_url = 'https://api.patentsview.org/{entity}/query'
+BASE_URL = 'https://api.patentsview.org/{entity}/query'
 
+class PatentsViewHook(BaseHook):
+    def __init__(self, conn_id=None, source=None):
+        super().__init__(source)
 
-class PatentsViewApi():
-    def __init__(self):
-        super().__init__()
-         
     def post(self, entity, query, fields=None, sort=None, options=None):
         # construct url
-        url = base_url.format(entity=entity)
+        url = BASE_URL.format(entity=entity)
 
         # construct parameters
         params = {'q': query}
@@ -55,15 +55,4 @@ class PatentsViewApi():
             print('current count: {}'.format(current_count))
 
         return response_json
-
-
-
-# api = PatentsViewApi()
-# api.post(
-#     entity='patents', 
-#     query={'inventor_last_name': 'Whitney'},
-#     fields=['patent_number', 'patent_date'],
-#     sort=[{'patent_number': 'asc'}],
-#     options={'per_page': 500}
-# )
     
