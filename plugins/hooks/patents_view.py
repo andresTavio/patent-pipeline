@@ -27,7 +27,10 @@ class PatentsViewHook(BaseHook):
         response_json = response.json()
 
         # set initial variables
-        total_count = response_json['total_patent_count']
+        results_key = entity
+        total_count_key = f'total_{entity[:-1]}_count'
+
+        total_count = response_json[total_count_key]
         current_count = response_json['count']
         page = 1
         print('current count: {}'.format(current_count))
@@ -48,7 +51,7 @@ class PatentsViewHook(BaseHook):
             next_response_json = next_response.json()
             
             # add items to initial response
-            response_json['patents'].extend(next_response_json['patents'])
+            response_json[entity].extend(next_response_json[entity])
 
             # update counts
             current_count += next_response_json['count']
