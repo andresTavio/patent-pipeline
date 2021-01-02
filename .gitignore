@@ -4,3 +4,4 @@ logs/
 *.pyc
 .DS_Store
 venv/
+files/
