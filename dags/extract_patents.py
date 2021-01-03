@@ -3,9 +3,10 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.operators.bash_operator import BashOperator
 from hooks.patents_view import PatentsViewHook
 from operators.local_to_s3 import LocalToS3Operator
+from operators.patents_view import PatentsToLocalOperator
+from scripts.dag_util import construct_files_dict
 from datetime import datetime
 import pathlib
-import json
 
 default_args = {
     'owner': 'dev',
@@ -13,24 +14,6 @@ default_args = {
     'start_date': datetime(2020, 12, 28),
     'retries': 0
 }
-
-def construct_files_dict(files_dict, execution_date, local_file_directory_path):
-    # construct each file path and s3 key from the file name
-    for file_key in list(files_dict.keys()):
-        files_dict[file_key]['s3_key'] = '{}/{}'.format(execution_date, files_dict[file_key]['file_name'])
-        files_dict[file_key]['local_file_path'] = '{}/{}'.format(local_file_directory_path, files_dict[file_key]['s3_key'])
-
-    return files_dict
-
-def call_api(file_path, entity, query, fields, sort, options):
-    hook = PatentsViewHook()
-    response = hook.post(entity, query, fields, sort, options)
-    print(response)
-    
-    with open(file_path, 'w') as f:
-        json.dump(response, f)
-
-    return response
 
 BASE_DIR = pathlib.Path().cwd()
 FILES_DIR = BASE_DIR.joinpath('files')
@@ -51,17 +34,14 @@ with DAG('extract_patents',
         dag=dag
     )
 
-    extract_patents = PythonOperator(
+    extract_patents = PatentsToLocalOperator(
         task_id='extract_patents',
-        python_callable=call_api,
-        op_kwargs={
-                'file_path': FILES['raw_patents']['local_file_path'],
-                'entity': 'patents', 
-                'query': {'inventor_last_name': 'Whitney'},
-                'fields': ['patent_number', 'patent_date'],
-                'sort': [{'patent_number': 'asc'}],
-                'options': {'per_page': 500}
-        }
+        file_path=FILES['raw_patents']['local_file_path'],
+        entity='patents', 
+        query={'inventor_last_name': 'Whitney'},
+        fields=['patent_number', 'patent_date'],
+        sort=[{'patent_number': 'asc'}],
+        options={'per_page': 500}
     )
     
     load_patents_to_s3 = LocalToS3Operator(
