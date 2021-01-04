@@ -23,9 +23,9 @@ class PatentsToLocalOperator(BaseOperator):
                  file_path,
                  entity,
                  query,
-                 fields,
-                 sort,
-                 options,
+                 fields=None,
+                 sort=None,
+                 options=None,
                  *args, **kwargs):
         super().__init__(*args, **kwargs)
 
