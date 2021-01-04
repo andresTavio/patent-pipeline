@@ -17,7 +17,9 @@ default_args = {
 
 BASE_DIR = pathlib.Path().cwd()
 FILES_DIR = BASE_DIR.joinpath('files')
-EXECUTION_DATE = '{{ ds }}'
+EXECUTION_DATE = '{{ next_ds }}'
+# PREVIOUS_EXECUTION_DATE = '{{ ds }}'
+PREVIOUS_EXECUTION_DATE = '2020-01-01'
 S3_BUCKET = 'raw-patents-us-east-2'
 LOCAL_FILE_DIRECTORY_FULL_PATH = '{}/{}'.format(FILES_DIR.resolve(), 'patents')
 FILES = {'raw_patents': {'file_name': 'raw_patents.json'}}
@@ -25,7 +27,7 @@ FILES = construct_files_dict(FILES, EXECUTION_DATE, LOCAL_FILE_DIRECTORY_FULL_PA
 
 with DAG('extract_patents',
          default_args=default_args,
-         schedule_interval='@once',
+         schedule_interval='@quarterly',
          catchup=False) as dag:
 
     create_local_file_directory = BashOperator(
@@ -38,8 +40,14 @@ with DAG('extract_patents',
         task_id='extract_patents',
         file_path=FILES['raw_patents']['local_file_path'],
         entity='patents', 
-        query={'inventor_last_name': 'Whitney'},
-        fields=['patent_number', 'patent_date'],
+        query={'_and':
+            [
+                {'_gte': {'patent_date': PREVIOUS_EXECUTION_DATE}}, 
+                {'_lt': {'patent_date': EXECUTION_DATE}},
+                {'_contains': {'assignee_organization': 'Uber'}}
+            ]
+        },
+        fields=['patent_number', 'patent_date', 'patent_title', 'assignee_organization'],
         sort=[{'patent_number': 'asc'}],
         options={'per_page': 500}
     )

@@ -16,7 +16,7 @@ class PatentsToLocalOperator(BaseOperator):
         options: string, JSON formatted object of options to modify the query or results 
     """
 
-    template_fields = ['file_path']
+    template_fields = ['file_path', 'query']
 
     @apply_defaults
     def __init__(self,
