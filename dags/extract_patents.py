@@ -20,12 +20,12 @@ BASE_DIR = pathlib.Path().cwd()
 FILES_DIR = BASE_DIR.joinpath('files')
 EXECUTION_DATE = '{{ next_ds }}'
 # PREVIOUS_EXECUTION_DATE = '{{ ds }}'
-PREVIOUS_EXECUTION_DATE = '2020-08-15'
+PREVIOUS_EXECUTION_DATE = '2020-10-15'
 S3_BUCKET = 'raw-patents-us-east-2'
 LOCAL_FILE_DIRECTORY_FULL_PATH = '{}/{}'.format(FILES_DIR.resolve(), 'patents')
 FILES = {'raw_patents': {'file_name': 'raw_patents.json'}}
 FILES = construct_files_dict(FILES, EXECUTION_DATE, LOCAL_FILE_DIRECTORY_FULL_PATH)
-QUERY_FILE_PATH = FILES_DIR.joinpath('assignee_contains_query.json')
+QUERY_FILE_PATH = FILES_DIR.joinpath('patents_query.json')
 
 with DAG('extract_patents',
          default_args=default_args,
@@ -39,28 +39,19 @@ with DAG('extract_patents',
     )
 
     @dag.task
-    def read_query_from_file(file_path):
+    def read_json_file(file_path):
         with open(file_path, 'r') as f:
-            json_dict = json.load(f)
+            json_obj = json.load(f)
     
-        return json_dict
+        return json_obj
 
-    assignee_contains_query = read_query_from_file(QUERY_FILE_PATH)
+    patents_query = read_json_file(QUERY_FILE_PATH)
 
     extract_patents = PatentsToLocalOperator(
         task_id='extract_patents',
         file_path=FILES['raw_patents']['local_file_path'],
         entity='patents', 
-        query={'_and':
-            [
-                {'_gte': {'patent_date': PREVIOUS_EXECUTION_DATE}}, 
-                {'_lt': {'patent_date': EXECUTION_DATE}},
-                assignee_contains_query
-            ]
-        },
-        fields=['patent_number', 'patent_date', 'patent_title', 'assignee_organization'],
-        sort=[{'patent_number': 'asc'}],
-        options={'per_page': 500}
+        query_file=QUERY_FILE_PATH
     )
     
     load_patents_to_s3 = LocalToS3Operator(

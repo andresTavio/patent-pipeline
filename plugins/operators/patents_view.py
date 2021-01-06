@@ -16,30 +16,24 @@ class PatentsToLocalOperator(BaseOperator):
         options: string, JSON formatted object of options to modify the query or results 
     """
 
-    template_fields = ['file_path', 'query']
+    template_fields = ['file_path', 'query_json']
 
     @apply_defaults
     def __init__(self,
                  file_path,
                  entity,
-                 query,
-                 fields=None,
-                 sort=None,
-                 options=None,
+                 query_json,
                  *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.file_path = file_path
         self.entity = entity
-        self.query = query
-        self.fields = fields
-        self.sort = sort
-        self.options = options
+        self.query_json = query_json
 
     def execute(self, context):
         print('Querying PatentsView API')
         hook = PatentsViewHook()
-        response = hook.post(self.entity, self.query, self.fields, self.sort, self.options)
+        response = hook.post(self.entity, self.query_json)
         print(response)
         
         with open(self.file_path, 'w') as f:
