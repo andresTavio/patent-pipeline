@@ -42,16 +42,16 @@ with DAG('extract_patents',
     def read_json_file(file_path):
         with open(file_path, 'r') as f:
             json_obj = json.load(f)
-    
+             
         return json_obj
 
     patents_query = read_json_file(QUERY_FILE_PATH)
 
     extract_patents = PatentsToLocalOperator(
         task_id='extract_patents',
-        file_path=FILES['raw_patents']['local_file_path'],
         entity='patents', 
-        query_file=QUERY_FILE_PATH
+        query=patents_query,
+        response_file_path=FILES['raw_patents']['local_file_path'],
     )
     
     load_patents_to_s3 = LocalToS3Operator(

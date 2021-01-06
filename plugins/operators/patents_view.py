@@ -8,36 +8,32 @@ class PatentsToLocalOperator(BaseOperator):
     """Queries PatentsView API and dumps to local json file.
 
     Attributes:
-        file_path: string, full local file path to write out to
         entity: string, name of PatentsView endpoint to query
-        query: string, JSON formatted object containing the query parameters
-        fields: string, JSON formatted array of fields to include in the results
-        sort: string, JSON formatted array of objects to sort the results
-        options: string, JSON formatted object of options to modify the query or results 
+        query: dict, JSON formatted object containing the query parameters
+        response_file_path: string, full local file path to write response
     """
 
-    template_fields = ['file_path', 'query_json']
+    template_fields = ['query', 'response_file_path']
 
     @apply_defaults
     def __init__(self,
-                 file_path,
                  entity,
-                 query_json,
+                 query,
+                 response_file_path,
                  *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.file_path = file_path
         self.entity = entity
-        self.query_json = query_json
+        self.query = query
+        self.response_file_path = response_file_path
 
     def execute(self, context):
-        print('Querying PatentsView API')
+        print(f'Querying PatentsView API for {self.entity} with parameters {self.query}')
         hook = PatentsViewHook()
-        response = hook.post(self.entity, self.query_json)
-        print(response)
+        response = hook.post(self.entity, self.query)
         
-        with open(self.file_path, 'w') as f:
+        with open(self.response_file_path, 'w') as f:
             json.dump(response, f)
 
-        print(f'Saved results to {self.file_path}')
+        print(f'Saved results to {self.response_file_path}')
 
