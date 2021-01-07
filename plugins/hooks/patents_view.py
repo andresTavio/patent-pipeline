@@ -12,6 +12,8 @@ class PatentsViewHook(BaseHook):
         # construct url
         url = BASE_URL.format(entity=entity)
 
+        print(json.dumps(query))
+
         # post request
         response = requests.post(url, data=json.dumps(query))
         response.raise_for_status()

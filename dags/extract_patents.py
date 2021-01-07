@@ -7,7 +7,6 @@ from operators.patents_view import PatentsToLocalOperator
 from scripts.dag_util import construct_files_dict
 from datetime import datetime
 import pathlib
-import json
 
 default_args = {
     'owner': 'dev',
@@ -34,24 +33,14 @@ with DAG('extract_patents',
 
     create_local_file_directory = BashOperator(
         task_id='create_local_file_directory',
-        bash_command='mkdir -p {}/{}'.format(LOCAL_FILE_DIRECTORY_FULL_PATH, EXECUTION_DATE),
-        dag=dag
+        bash_command='mkdir -p {}/{}'.format(LOCAL_FILE_DIRECTORY_FULL_PATH, EXECUTION_DATE)
     )
-
-    @dag.task
-    def read_json_file(file_path):
-        with open(file_path, 'r') as f:
-            json_obj = json.load(f)
-             
-        return json_obj
-
-    patents_query = read_json_file(QUERY_FILE_PATH)
 
     extract_patents = PatentsToLocalOperator(
         task_id='extract_patents',
         entity='patents', 
-        query=patents_query,
-        response_file_path=FILES['raw_patents']['local_file_path'],
+        query_file_path=QUERY_FILE_PATH,
+        response_file_path=FILES['raw_patents']['local_file_path']
     )
     
     load_patents_to_s3 = LocalToS3Operator(
@@ -60,8 +49,7 @@ with DAG('extract_patents',
         s3_bucket=S3_BUCKET,
         s3_key=FILES['raw_patents']['s3_key'],
         local_file_path=FILES['raw_patents']['local_file_path'],
-        replace=True,
-        dag=dag
+        replace=True
     )
 
     create_local_file_directory >> extract_patents >> load_patents_to_s3
