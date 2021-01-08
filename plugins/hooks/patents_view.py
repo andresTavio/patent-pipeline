@@ -13,7 +13,7 @@ class PatentsViewHook(BaseHook):
         url = BASE_URL.format(entity=entity)
 
         # post request
-        response = requests.post(url, data=json.dumps(query))
+        response = requests.post(url, json=query)
         response.raise_for_status()
         response_json = response.json()
 
@@ -38,7 +38,7 @@ class PatentsViewHook(BaseHook):
                 query['o'].update({"page": page})
 
             # post request
-            next_response = requests.post(url, data=json.dumps(query))
+            next_response = requests.post(url, json=query)
             next_response_json = next_response.json()
             
             # add items to initial response
