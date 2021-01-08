@@ -1,6 +1,7 @@
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
 from hooks.patents_view import PatentsViewHook
+from airflow.utils.helpers import parse_template_string
 import json
 
 
@@ -13,7 +14,7 @@ class PatentsToLocalOperator(BaseOperator):
         response_file_path: string, full local file path to write response
     """
 
-    template_fields = ['query_file_path', 'response_file_path']
+    template_fields = ['response_file_path']
 
     @apply_defaults
     def __init__(self,
@@ -34,9 +35,13 @@ class PatentsToLocalOperator(BaseOperator):
         with open(self.query_file_path, 'r') as f:
             query = json.load(f)
 
+        # manually render airflow macro in json file
+        _, template = parse_template_string(json.dumps(query))
+        templated_query = template.render(**context)
+
         # init hook and post to api
         hook = PatentsViewHook()
-        response = hook.post(self.entity, query)
+        response = hook.post(self.entity, json.loads(templated_query))
         
         with open(self.response_file_path, 'w') as f:
             json.dump(response, f)

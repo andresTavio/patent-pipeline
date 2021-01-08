@@ -24,7 +24,7 @@ S3_BUCKET = 'raw-patents-us-east-2'
 LOCAL_FILE_DIRECTORY_FULL_PATH = '{}/{}'.format(FILES_DIR.resolve(), 'patents')
 FILES = {'raw_patents': {'file_name': 'raw_patents.json'}}
 FILES = construct_files_dict(FILES, EXECUTION_DATE, LOCAL_FILE_DIRECTORY_FULL_PATH)
-QUERY_FILE_PATH = FILES_DIR.joinpath('patents_query.json')
+QUERY_FILE_PATH = FILES_DIR.joinpath('patents_query.json').resolve()
 
 with DAG('extract_patents',
          default_args=default_args,
