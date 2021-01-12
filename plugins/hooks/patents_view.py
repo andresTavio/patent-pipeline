@@ -8,21 +8,12 @@ class PatentsViewHook(BaseHook):
     def __init__(self, conn_id=None, source=None):
         super().__init__(source)
 
-    def post(self, entity, query, fields=None, sort=None, options=None):
+    def post(self, entity, query):
         # construct url
         url = BASE_URL.format(entity=entity)
 
-        # construct parameters
-        params = {'q': query}
-        if fields:
-            params['f'] = fields
-        if sort:
-            params['s'] = sort
-        if options:
-            params['o'] = options
-
         # post request
-        response = requests.post(url, data=json.dumps(params))
+        response = requests.post(url, json=query)
         response.raise_for_status()
         response_json = response.json()
 
@@ -41,13 +32,13 @@ class PatentsViewHook(BaseHook):
             
             # construct parameters for page
             page += 1
-            if not 'o' in params:
-                params['o'] = {"page": page}
+            if not 'o' in query:
+                query['o'] = {"page": page}
             else:
-                params['o'].update({"page": page})
+                query['o'].update({"page": page})
 
             # post request
-            next_response = requests.post(url, data=json.dumps(params))
+            next_response = requests.post(url, json=query)
             next_response_json = next_response.json()
             
             # add items to initial response
