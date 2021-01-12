@@ -1,0 +1,190 @@
+{
+	"q": {
+		"_and":
+            [
+                {"_gte": {"patent_date": "{{ ds }}"}}, 
+                {"_lt": {"patent_date": "{{ next_ds }}"}},
+                {"_or": [{
+					"_contains": {
+						"assignee_organization": "Uber"
+					}
+				},
+				{
+					"_contains": {
+						"assignee_organization": "Apple"
+					}
+				},
+				{
+					"_contains": {
+						"assignee_organization": "Microsoft"
+					}
+				},
+				{
+					"_contains": {
+						"assignee_organization": "NVIDIA"
+					}
+				},
+				{
+					"_contains": {
+						"assignee_organization": "PayPal"
+					}
+				},
+				{
+					"_contains": {
+						"assignee_organization": "Adobe"
+					}
+				},
+				{
+					"_contains": {
+						"assignee_organization": "salesforce"
+					}
+				},
+				{
+					"_contains": {
+						"assignee_organization": "Intel"
+					}
+				},
+				{
+					"_contains": {
+						"assignee_organization": "Cisco Systems"
+					}
+				},
+				{
+					"_contains": {
+						"assignee_organization": "Qualcomm"
+					}
+				},
+				{
+					"_contains": {
+						"assignee_organization": "Broadcom"
+					}
+				},
+				{
+					"_contains": {
+						"assignee_organization": "Texas Instruments"
+					}
+				},
+				{
+					"_contains": {
+						"assignee_organization": "Oracle"
+					}
+				},
+				{
+					"_contains": {
+						"assignee_organization": "Alphabet"
+					}
+				},
+				{
+					"_contains": {
+						"assignee_organization": "Facebook"
+					}
+				},
+				{
+					"_contains": {
+						"assignee_organization": "International Business Machines"
+					}
+				},
+				{
+					"_contains": {
+						"assignee_organization": "Palantir"
+					}
+				},
+				{
+					"_contains": {
+						"assignee_organization": "Amazon"
+					}
+				},
+				{
+					"_contains": {
+						"assignee_organization": "Netflix"
+					}
+				},
+				{
+					"_contains": {
+						"assignee_organization": "Shopify"
+					}
+				},
+				{
+					"_contains": {
+						"assignee_organization": "Dropbox"
+					}
+				},
+				{
+					"_contains": {
+						"assignee_organization": "Twilio"
+					}
+				},
+				{
+					"_contains": {
+						"assignee_organization": "Snap"
+					}
+				},
+				{
+					"_contains": {
+						"assignee_organization": "Square"
+					}
+				},
+				{
+					"_contains": {
+						"assignee_organization": "Tesla"
+					}
+				}
+			]}
+            ]
+	},
+	"o": {"per_page": 10000},
+	"f": [
+        "assignee_city",
+        "assignee_country",
+        "assignee_county",
+        "assignee_first_name",
+        "assignee_id",
+        "assignee_last_name",
+        "assignee_latitude",
+        "assignee_location_id",
+        "assignee_longitude",
+        "assignee_organization",
+        "assignee_sequence",
+        "assignee_state",
+        "assignee_state_fips",
+        "assignee_total_num_inventors",
+        "assignee_total_num_patents",
+        "assignee_type",
+        "inventor_city",
+        "inventor_country",
+        "inventor_county",
+        "inventor_county_fips",
+        "inventor_first_name",
+        "inventor_id",
+        "inventor_last_name",
+        "inventor_latitude",
+        "inventor_location_id",
+        "inventor_longitude",
+        "inventor_sequence",
+        "inventor_state",
+        "inventor_state_fips",
+        "inventor_total_num_patents",
+        "patent_abstract",
+        "patent_average_processing_time",
+        "patent_date",
+        "patent_kind",
+        "patent_num_cited_by_us_patents",
+        "patent_num_claims",
+        "patent_num_combined_citations",
+        "patent_num_foreign_citations",
+        "patent_num_us_application_citations",
+        "patent_num_us_patent_citations",
+        "patent_number",
+        "patent_processing_time",
+        "patent_title",
+        "patent_type",
+		"patent_year",
+		"cpc_category",
+		"cpc_group_id",
+		"cpc_section_id",
+		"ipc_section",
+		"ipc_class",
+		"uspc_mainclass_id",
+		"uspc_mainclass_title"
+    ]
+}

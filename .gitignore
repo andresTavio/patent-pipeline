@@ -4,4 +4,5 @@ logs/
 *.pyc
 .DS_Store
 venv/
-files/
+files/*
+!files/sample_patents_query.json
