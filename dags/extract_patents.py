@@ -18,8 +18,6 @@ default_args = {
 BASE_DIR = pathlib.Path().cwd()
 FILES_DIR = BASE_DIR.joinpath('files')
 EXECUTION_DATE = '{{ next_ds }}'
-# PREVIOUS_EXECUTION_DATE = '{{ ds }}'
-PREVIOUS_EXECUTION_DATE = '2020-10-15'
 S3_BUCKET = 'raw-patents-us-east-2'
 LOCAL_FILE_DIRECTORY_FULL_PATH = '{}/{}'.format(FILES_DIR.resolve(), 'patents')
 FILES = {'raw_patents': {'file_name': 'raw_patents.json'}}
@@ -29,7 +27,8 @@ QUERY_FILE_PATH = FILES_DIR.joinpath('patents_query.json').resolve()
 with DAG('extract_patents',
          default_args=default_args,
          schedule_interval='@quarterly',
-         catchup=False) as dag:
+         catchup=False,
+         max_active_runs=1) as dag:
 
     create_local_file_directory = BashOperator(
         task_id='create_local_file_directory',
