@@ -1,6 +1,7 @@
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
 from hooks.patents_view import PatentsViewHook
+from airflow.utils.helpers import parse_template_string
 import json
 
 
@@ -8,42 +9,42 @@ class PatentsToLocalOperator(BaseOperator):
     """Queries PatentsView API and dumps to local json file.
 
     Attributes:
-        file_path: string, full local file path to write out to
         entity: string, name of PatentsView endpoint to query
-        query: string, JSON formatted object containing the query parameters
-        fields: string, JSON formatted array of fields to include in the results
-        sort: string, JSON formatted array of objects to sort the results
-        options: string, JSON formatted object of options to modify the query or results 
+        query_file_path: string, full local file path to JSON file containing the query parameters
+        response_file_path: string, full local file path to write response
     """
 
-    template_fields = ['file_path', 'query']
+    template_fields = ['response_file_path']
 
     @apply_defaults
     def __init__(self,
-                 file_path,
                  entity,
-                 query,
-                 fields=None,
-                 sort=None,
-                 options=None,
+                 query_file_path,
+                 response_file_path,
                  *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.file_path = file_path
         self.entity = entity
-        self.query = query
-        self.fields = fields
-        self.sort = sort
-        self.options = options
+        self.query_file_path = query_file_path
+        self.response_file_path = response_file_path
 
     def execute(self, context):
-        print('Querying PatentsView API')
-        hook = PatentsViewHook()
-        response = hook.post(self.entity, self.query, self.fields, self.sort, self.options)
-        print(response)
+        print(f'Querying PatentsView API for {self.entity} with parameters in {self.query_file_path}')
         
-        with open(self.file_path, 'w') as f:
+        # read in query json file
+        with open(self.query_file_path, 'r') as f:
+            query = json.load(f)
+
+        # manually render airflow macro in json file
+        _, template = parse_template_string(json.dumps(query))
+        templated_query = template.render(**context)
+
+        # init hook and post to api
+        hook = PatentsViewHook()
+        response = hook.post(self.entity, json.loads(templated_query))
+        
+        with open(self.response_file_path, 'w') as f:
             json.dump(response, f)
 
-        print(f'Saved results to {self.file_path}')
+        print(f'Saved results to {self.response_file_path}')
 
