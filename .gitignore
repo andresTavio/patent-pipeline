@@ -6,3 +6,5 @@ logs/
 venv/
 files/*
 !files/sample_patents_query.json
+spark/files
+!spark/files/raw_patents.json
