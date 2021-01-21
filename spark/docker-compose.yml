@@ -9,10 +9,6 @@ services:
     environment:
       - INIT_DAEMON_STEP=setup_spark
       - "constraint:node==<yourmasternode>"
-      - "SPARK_CLASSPATH=/app/db/postgresql-42.2.18.jar"
-    volumes:
-      - ./files:/app/files
-      - ./db:/app/db
   spark-worker-1:
     image: bde2020/spark-worker:3.0.1-hadoop3.2
     container_name: spark-worker-1
@@ -23,9 +19,6 @@ services:
     environment:
       - "SPARK_MASTER=spark://spark-master:7077"
       - "constraint:node==<yourworkernode>"
-      - "SPARK_CLASSPATH=/app/db/postgresql-42.2.18.jar"
-    volumes:
-      - ./db:/app/db
   spark-worker-2:
     image: bde2020/spark-worker:3.0.1-hadoop3.2
     container_name: spark-worker-2
@@ -36,9 +29,6 @@ services:
     environment:
       - "SPARK_MASTER=spark://spark-master:7077"
       - "constraint:node==<yourworkernode>"
-      - "SPARK_CLASSPATH=/app/db/postgresql-42.2.18.jar"
-    volumes:
-      - ./db:/app/db
   py-spark:
     build:
       context: .
@@ -48,8 +38,8 @@ services:
     environment:
       - ENABLE_INIT_DAEMON=false
       - "SPARK_MASTER=spark://spark-master:7077"
-      - "SPARK_CLASSPATH=/app/db/postgresql-42.2.18.jar"
+    env_file:
+      - .env
     volumes:
       - ./files:/app/files
-      - ./scripts:/app
-      - ./db:/app/db
+      - ./scripts:/app/scripts
