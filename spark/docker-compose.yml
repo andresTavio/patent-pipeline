@@ -43,3 +43,9 @@ services:
     volumes:
       - ./files:/app/files
       - ./scripts:/app/scripts
+  metabase:
+    image: metabase/metabase:v0.37.7
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
