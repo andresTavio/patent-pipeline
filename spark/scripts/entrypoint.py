@@ -11,7 +11,7 @@ spark = SparkSession \
         .getOrCreate()
 
 # read in
-df = spark.read.json('/app/files/raw_patents.json')
+df = spark.read.json('/app/files/raw_patents/*/*.json')
 
 # transform one row to multi rows
 df_exploded = df.select(explode(df.patents))
@@ -37,9 +37,6 @@ df_exploded = df_exploded.withColumn('assignee_0_id', df_exploded.assignees.getI
 drop_list = [name for name, dtype in df_exploded.dtypes if 'array' in dtype]
 df_exploded = df_exploded.drop(*drop_list)
 
-# # write out to parquet
-# df_exploded.write.mode('overwrite').parquet('app/files/parquet_patents')
-
 # write to db
 df_exploded.write.format('jdbc') \
     .options(
@@ -50,15 +47,15 @@ df_exploded.write.format('jdbc') \
          driver='org.postgresql.Driver') \
     .save()
 
-# read in what was just written
-db_read = spark.read.format('jdbc') \
-    .options(
-         url=os.environ['POSTGRES_URL'],
-         dbtable='patent',
-         user=os.environ['POSTGRES_USER'],
-         password=os.environ['POSTGRES_PASSWORD'],
-         driver='org.postgresql.Driver') \
-    .load()
+# # read in what was just written
+# db_read = spark.read.format('jdbc') \
+#     .options(
+#          url=os.environ['POSTGRES_URL'],
+#          dbtable='patent',
+#          user=os.environ['POSTGRES_USER'],
+#          password=os.environ['POSTGRES_PASSWORD'],
+#          driver='org.postgresql.Driver') \
+#     .load()
 
-db_read.printSchema()
-db_read.show(n=10)
+# db_read.printSchema()
+# db_read.show(n=10)
