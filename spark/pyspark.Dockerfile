@@ -6,4 +6,4 @@ RUN pip install -r requirements.txt
 COPY db/postgresql-42.2.18.jar /spark/jars/postgresql-42.2.18.jar
 
 ENV SPARK_POSTGRES_DRIVER_LOCATION=/spark/jars/postgresql-42.2.18.jar
-ENV SPARK_APPLICATION_PYTHON_LOCATION=/app/scripts/entrypoint.py
+ENV SPARK_APPLICATION_PYTHON_LOCATION=/app/scripts/load_raw_patent_table.py
