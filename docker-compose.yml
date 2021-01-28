@@ -21,6 +21,7 @@ services:
             - ./scripts:/opt/airflow/scripts
             - ./plugins:/opt/airflow/plugins
             - ./files:/opt/airflow/files
+            - ./jars:/opt/airflow/jars
         ports:
             - "8080:8080"
 
@@ -38,3 +39,4 @@ services:
             - ./logs:/opt/airflow/logs
             - ./plugins:/opt/airflow/plugins
             - ./files:/opt/airflow/files
+            - ./jars:/opt/airflow/jars
