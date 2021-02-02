@@ -22,6 +22,7 @@ services:
             - ./plugins:/opt/airflow/plugins
             - ./files:/opt/airflow/files
             - ./jars:/opt/airflow/jars
+            - ./spark:/opt/airflow/spark
         ports:
             - "8080:8080"
 
@@ -40,3 +41,4 @@ services:
             - ./plugins:/opt/airflow/plugins
             - ./files:/opt/airflow/files
             - ./jars:/opt/airflow/jars
+            - ./spark:/opt/airflow/spark
