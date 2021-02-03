@@ -2,6 +2,7 @@ import pyspark
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import explode
 import os
+import argparse
 
 def load_raw_patent_table():
     spark = SparkSession \
@@ -40,14 +41,14 @@ def load_raw_patent_table():
             driver='org.postgresql.Driver') \
         .save()
 
-def load_raw_patent_table_test():
+def load_raw_patent_table_test(input_file, output_file):
     spark = SparkSession \
         .builder \
         .appName('Python Spark SQL transform patents') \
         .getOrCreate()
 
     # read in
-    df = spark.read.json('s3://raw-patents-us-east-2/2018-10-01/')
+    df = spark.read.json(input_file)
 
     # transform one row to multi rows
     df_exploded = df.select(explode(df.patents))
@@ -65,7 +66,11 @@ def load_raw_patent_table_test():
     drop_list = [name for name, dtype in df_exploded.dtypes if 'array' in dtype]
     df_exploded = df_exploded.drop(*drop_list)
 
-    df_exploded.write.mode("overwrite").json('s3://raw-patents-us-east-2/2018-10-01/output')
+    df_exploded.write.mode("overwrite").json(output_file)
 
 if __name__ == '__main__':
-    load_raw_patent_table_test()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--input")
+    parser.add_argument("--output")
+    args = parser.parse_args()
+    load_raw_patent_table_test(args.input, args.output)
