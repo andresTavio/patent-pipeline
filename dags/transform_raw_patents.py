@@ -59,7 +59,6 @@ JOB_FLOW_OVERRIDES = {
     'ServiceRole': 'EMR_DefaultRole',
 }
 
-s3_clean = "clean_data/"
 SPARK_STEPS = [
     {
         "Name": "Normalize data",
@@ -70,7 +69,11 @@ SPARK_STEPS = [
                 "spark-submit",
                 "--deploy-mode",
                 "cluster",
-                "{{ params.s3_script }}",
+                '{{ params.s3_script }}',
+                '--input',
+                '{{ params.s3_input }}',
+                '--output',
+                '{{ params.s3_output }}'
             ]
         }
     }
@@ -97,7 +100,7 @@ with DAG('load_raw_patents_table',
         replace=True
     )
 
-    clusterid = 'j-3M7C84C2ZXDK8'
+    clusterid = 'j-1O0MQU6IFFG0N'
     # create_emr_cluster = EmrCreateJobFlowOperator(
     #     task_id='create_emr_cluster',
     #     job_flow_overrides=JOB_FLOW_OVERRIDES,
@@ -111,12 +114,10 @@ with DAG('load_raw_patents_table',
         job_flow_id=clusterid,
         aws_conn_id='aws_default',
         steps=SPARK_STEPS,
-        params={ # these params are used to fill the paramterized values in SPARK_STEPS json
-            'files_bucket_name': S3_BUCKET_DATA,
-            'scripts_bucket_name': S3_BUCKET_SCRIPTS,
-            's3_data': 's3://{}/{}'.format(S3_BUCKET_DATA, '2018-01-01/raw_patents.json'),
+        params={
+            's3_input': 's3://{}/{}'.format(S3_BUCKET_DATA, '2018-*/*.json'),
             's3_script': 's3://{}/{}'.format(S3_BUCKET_SCRIPTS, 'load_raw_patent_table.py'),
-            's3_clean': 's3://{}/{}'.format(S3_BUCKET_TRANSFORMED_DATA, '2018-01-01/patents.json')
+            's3_output': 's3://{}/{}'.format(S3_BUCKET_TRANSFORMED_DATA, 'patents')
         }
     )
 
