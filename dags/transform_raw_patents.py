@@ -13,7 +13,12 @@ SPARK_SCRIPTS_DIR = BASE_DIR.joinpath('spark/scripts')
 LOCAL_FILE_DIRECTORY_FULL_PATH = SPARK_SCRIPTS_DIR.resolve()
 
 EXECUTION_DATE = '{{ next_ds }}'
-SPARK_FILES = {'load_raw_patent_table': {'file_name': 'load_raw_patent_table.py'}}
+SPARK_FILES = {
+    'parse_patent_from_raw_patents': {'file_name': 'parse_patent_from_raw_patents.py'},
+    'parse_inventor_from_raw_patents': {'file_name': 'parse_inventor_from_raw_patents.py'},
+    'parse_assignee_from_raw_patents': {'file_name': 'parse_assignee_from_raw_patents.py'},
+    'parse_cpc_from_raw_patents': {'file_name': 'parse_cpc_from_raw_patents.py'}
+}
 SPARK_FILES = construct_files_dict_no_date(SPARK_FILES, LOCAL_FILE_DIRECTORY_FULL_PATH)
 
 S3_BUCKET_SCRIPTS = 'patents-spark-scripts-us-east-2'
@@ -69,6 +74,8 @@ SPARK_STEPS = [
                 "spark-submit",
                 "--deploy-mode",
                 "cluster",
+                '--py-files',
+                '{{ params.python_dependencies }}',
                 '{{ params.s3_script }}',
                 '--input',
                 '{{ params.s3_input }}',
@@ -95,12 +102,12 @@ with DAG('load_raw_patents_table',
         task_id='load_spark_script_to_s3',
         s3_conn_id='',  # set in environment variable
         s3_bucket=S3_BUCKET_SCRIPTS,
-        s3_key=SPARK_FILES['load_raw_patent_table']['s3_key'],
-        local_file_path=SPARK_FILES['load_raw_patent_table']['local_file_path'],
+        s3_key=SPARK_FILES['parse_cpc_from_raw_patents']['s3_key'],
+        local_file_path=SPARK_FILES['parse_cpc_from_raw_patents']['local_file_path'],
         replace=True
     )
 
-    clusterid = 'j-1O0MQU6IFFG0N'
+    clusterid = 'j-X2C34AD8IZYA'
     # create_emr_cluster = EmrCreateJobFlowOperator(
     #     task_id='create_emr_cluster',
     #     job_flow_overrides=JOB_FLOW_OVERRIDES,
@@ -116,8 +123,9 @@ with DAG('load_raw_patents_table',
         steps=SPARK_STEPS,
         params={
             's3_input': 's3://{}/{}'.format(S3_BUCKET_DATA, '2018-*/*.json'),
-            's3_script': 's3://{}/{}'.format(S3_BUCKET_SCRIPTS, 'load_raw_patent_table.py'),
-            's3_output': 's3://{}/{}'.format(S3_BUCKET_TRANSFORMED_DATA, 'patents')
+            's3_script': 's3://{}/{}'.format(S3_BUCKET_SCRIPTS, 'parse_cpc_from_raw_patents.py'),
+            's3_output': 's3://{}/{}'.format(S3_BUCKET_TRANSFORMED_DATA, 'cpc'),
+            'python_dependencies': 's3://patents-spark-scripts-us-east-2/parse_entity_from_raw_patents.py'
         }
     )
 
