@@ -17,14 +17,14 @@
         "InstanceGroups": [
             {
                 "Name": "Master node",
-                "Market": "SPOT",
+                "Market": "ON_DEMAND",
                 "InstanceRole": "MASTER",
                 "InstanceType": "m5.xlarge",
                 "InstanceCount": 1
             },
             {
                 "Name": "Core - 2",
-                "Market": "SPOT",
+                "Market": "ON_DEMAND",
                 "InstanceRole": "CORE",
                 "InstanceType": "m5.xlarge",
                 "InstanceCount": 2
@@ -35,7 +35,6 @@
     },
     "JobFlowRole": "EMR_EC2_DefaultRole",
     "ServiceRole": "EMR_DefaultRole",
-    "StepConcurrencyLevel": 10,
     "VisibleToAllUsers": true,
     "LogUri": "s3://aws-logs-628147927448-us-east-2/elasticmapreduce/"
 }
