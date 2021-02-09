@@ -15,108 +15,59 @@ BASE_DIR = pathlib.Path().cwd()
 SPARK_SCRIPTS_DIR = BASE_DIR.joinpath('spark/scripts')
 LOCAL_FILE_DIRECTORY_FULL_PATH = SPARK_SCRIPTS_DIR.resolve()
 
-EXECUTION_DATE = '{{ next_ds }}'
-SPARK_FILES = {
-    'parse_patent_from_raw_patents': {
-        'file_name': 'parse_patent_from_raw_patents.py',
-    },
-    'parse_inventor_from_raw_patents': {
-        'file_name': 'parse_inventor_from_raw_patents.py',
-    },
-    'parse_assignee_from_raw_patents': {
-        'file_name': 'parse_assignee_from_raw_patents.py',
-    },
-    'parse_cpc_from_raw_patents': {
-        'file_name': 'parse_cpc_from_raw_patents.py'
-    },
-    'parse_entity_from_raw_patents': {
-        'file_name': 'parse_entity_from_raw_patents.py',
-    }
-}
-SPARK_FILES = construct_files_dict_no_date(SPARK_FILES, LOCAL_FILE_DIRECTORY_FULL_PATH)
-
 S3_BUCKET_SCRIPTS = 'patents-spark-scripts-us-east-2'
 S3_BUCKET_DATA = 'raw-patents-us-east-2'
 S3_BUCKET_TRANSFORMED_DATA = 'transformed-patents-us-east-2'
 
-SPARK_STEPS = [
-    {
-        "Name": "Parse patent from raw patents",
-        "ActionOnFailure": "CONTINUE",
-        "HadoopJarStep": {
-            "Jar": "command-runner.jar",
-            "Args": [
-                "spark-submit",
-                "--deploy-mode",
-                "cluster",
-                '--py-files',
-                '{{ params.python_dependencies }}',
-                '{{ params.patent_s3_script }}',
-                '--input',
-                '{{ params.s3_input }}',
-                '--output',
-                '{{ params.patent_s3_output }}'
-            ]
+EXECUTION_DATE = '{{ next_ds }}'
+SPARK_FILES = {
+    'parse_patent_from_raw_patents': {
+        'file_name': 'parse_patent_from_raw_patents.py',
+        'spark_step_args': {
+            'name': 'Parse patent from raw patents',
+            'python_dependencies': 's3://patents-spark-scripts-us-east-2/parse_entity_from_raw_patents.py',
+            's3_input': 's3://{}/{}/{}'.format(S3_BUCKET_DATA, EXECUTION_DATE, '*.json'),
+            's3_script': 's3://{}/{}'.format(S3_BUCKET_SCRIPTS, 'parse_patent_from_raw_patents.py'),
+            's3_output': 's3://{}/{}'.format(S3_BUCKET_TRANSFORMED_DATA, 'patent'),
         }
     },
-    {
-        "Name": "Parse inventor from raw patents",
-        "ActionOnFailure": "CONTINUE",
-        "HadoopJarStep": {
-            "Jar": "command-runner.jar",
-            "Args": [
-                "spark-submit",
-                "--deploy-mode",
-                "cluster",
-                '--py-files',
-                '{{ params.python_dependencies }}',
-                '{{ params.inventor_s3_script }}',
-                '--input',
-                '{{ params.s3_input }}',
-                '--output',
-                '{{ params.inventor_s3_output }}'
-            ]
+    'parse_inventor_from_raw_patents': {
+        'file_name': 'parse_inventor_from_raw_patents.py',
+        'spark_step_args': {
+            'name': 'Parse inventor from raw patents',
+            'python_dependencies': 's3://patents-spark-scripts-us-east-2/parse_entity_from_raw_patents.py',
+            's3_input': 's3://{}/{}/{}'.format(S3_BUCKET_DATA, EXECUTION_DATE, '*.json'),
+            's3_script': 's3://{}/{}'.format(S3_BUCKET_SCRIPTS, 'parse_inventor_from_raw_patents.py'),
+            's3_output': 's3://{}/{}'.format(S3_BUCKET_TRANSFORMED_DATA, 'inventor'),
         }
     },
-    {
-        "Name": "Parse assignee from raw patents",
-        "ActionOnFailure": "CONTINUE",
-        "HadoopJarStep": {
-            "Jar": "command-runner.jar",
-            "Args": [
-                "spark-submit",
-                "--deploy-mode",
-                "cluster",
-                '--py-files',
-                '{{ params.python_dependencies }}',
-                '{{ params.assignee_s3_script }}',
-                '--input',
-                '{{ params.s3_input }}',
-                '--output',
-                '{{ params.assignee_s3_output }}'
-            ]
+    'parse_assignee_from_raw_patents': {
+        'file_name': 'parse_assignee_from_raw_patents.py',
+        'spark_step_args': {
+            'name': 'Parse assignee from raw patents',
+            'python_dependencies': 's3://patents-spark-scripts-us-east-2/parse_entity_from_raw_patents.py',
+            's3_input': 's3://{}/{}/{}'.format(S3_BUCKET_DATA, EXECUTION_DATE, '*.json'),
+            's3_script': 's3://{}/{}'.format(S3_BUCKET_SCRIPTS, 'parse_assignee_from_raw_patents.py'),
+            's3_output': 's3://{}/{}'.format(S3_BUCKET_TRANSFORMED_DATA, 'assignee'),
         }
     },
-    {
-        "Name": "Parse cpc from raw patents",
-        "ActionOnFailure": "CONTINUE",
-        "HadoopJarStep": {
-            "Jar": "command-runner.jar",
-            "Args": [
-                "spark-submit",
-                "--deploy-mode",
-                "cluster",
-                '--py-files',
-                '{{ params.python_dependencies }}',
-                '{{ params.cpc_s3_script }}',
-                '--input',
-                '{{ params.s3_input }}',
-                '--output',
-                '{{ params.cpc_s3_output }}'
-            ]
+    'parse_cpc_from_raw_patents': {
+        'file_name': 'parse_cpc_from_raw_patents.py',
+        'spark_step_args': {
+            'name': 'Parse cpc from raw patents',
+            'python_dependencies': 's3://patents-spark-scripts-us-east-2/parse_entity_from_raw_patents.py',
+            's3_input': 's3://{}/{}/{}'.format(S3_BUCKET_DATA, EXECUTION_DATE, '*.json'),
+            's3_script': 's3://{}/{}'.format(S3_BUCKET_SCRIPTS, 'parse_cpc_from_raw_patents.py'),
+            's3_output': 's3://{}/{}'.format(S3_BUCKET_TRANSFORMED_DATA, 'cpc')
         }
+    },
+    'parse_entity_from_raw_patents': {
+        'file_name': 'parse_entity_from_raw_patents.py',
+        'spark_step_args': None
     }
-]
+}
+SPARK_FILES = construct_files_dict_no_date(SPARK_FILES, LOCAL_FILE_DIRECTORY_FULL_PATH)
+
 
 default_args = {
     'owner': 'dev',
@@ -125,21 +76,29 @@ default_args = {
     'retries': 0
 }
 
-paramss = {
-            'python_dependencies': 's3://patents-spark-scripts-us-east-2/parse_entity_from_raw_patents.py',
-            's3_input': 's3://{}/{}/{}'.format(S3_BUCKET_DATA, '{{ next_ds }}', '*.json'),
-            'patent_s3_script': 's3://{}/{}'.format(S3_BUCKET_SCRIPTS, 'parse_patent_from_raw_patents.py'),
-            'patent_s3_output': 's3://{}/{}'.format(S3_BUCKET_TRANSFORMED_DATA, 'patent'),
-            'inventor_s3_script': 's3://{}/{}'.format(S3_BUCKET_SCRIPTS, 'parse_inventor_from_raw_patents.py'),
-            'inventor_s3_output': 's3://{}/{}'.format(S3_BUCKET_TRANSFORMED_DATA, 'inventor'),
-            'assignee_s3_script': 's3://{}/{}'.format(S3_BUCKET_SCRIPTS, 'parse_assignee_from_raw_patents.py'),
-            'assignee_s3_output': 's3://{}/{}'.format(S3_BUCKET_TRANSFORMED_DATA, 'assignee'),
-            'cpc_s3_script': 's3://{}/{}'.format(S3_BUCKET_SCRIPTS, 'parse_cpc_from_raw_patents.py'),
-            'cpc_s3_output': 's3://{}/{}'.format(S3_BUCKET_TRANSFORMED_DATA, 'cpc'),
-}
 
-def render():
-    print('{{ params.s3_input }}')
+def render_spark_step_func(**kwargs):
+    spark_step = {
+        'Name': kwargs['name'],
+        'ActionOnFailure': 'CONTINUE',
+        'HadoopJarStep': {
+            'Jar': 'command-runner.jar',
+            'Args': [
+                'spark-submit',
+                '--deploy-mode',
+                'cluster',
+                '--py-files',
+                kwargs['python_dependencies'],
+                kwargs['s3_script'],
+                '--input',
+                kwargs['s3_input'],
+                '--output',
+                kwargs['s3_output']
+            ]
+        }
+    }
+
+    return [spark_step]
 
 
 with DAG('transform_raw_patents',
@@ -147,98 +106,91 @@ with DAG('transform_raw_patents',
     schedule_interval='@quarterly',
     catchup=False) as dag:
 
+    # create non entity specific tasks
     start_dag = DummyOperator(
         task_id='start_dag',
     )
 
-    render_params = PythonOperator (
-        task_id='render_params',
-        python_callable=render,
-        params={
-            'python_dependencies': 's3://patents-spark-scripts-us-east-2/parse_entity_from_raw_patents.py',
-            's3_input': 's3://{}/{}/{}'.format(S3_BUCKET_DATA, '{{ next_ds }}', '*.json'),
-            'patent_s3_script': 's3://{}/{}'.format(S3_BUCKET_SCRIPTS, 'parse_patent_from_raw_patents.py'),
-            'patent_s3_output': 's3://{}/{}'.format(S3_BUCKET_TRANSFORMED_DATA, 'patent'),
-            'inventor_s3_script': 's3://{}/{}'.format(S3_BUCKET_SCRIPTS, 'parse_inventor_from_raw_patents.py'),
-            'inventor_s3_output': 's3://{}/{}'.format(S3_BUCKET_TRANSFORMED_DATA, 'inventor'),
-            'assignee_s3_script': 's3://{}/{}'.format(S3_BUCKET_SCRIPTS, 'parse_assignee_from_raw_patents.py'),
-            'assignee_s3_output': 's3://{}/{}'.format(S3_BUCKET_TRANSFORMED_DATA, 'assignee'),
-            'cpc_s3_script': 's3://{}/{}'.format(S3_BUCKET_SCRIPTS, 'parse_cpc_from_raw_patents.py'),
-            'cpc_s3_output': 's3://{}/{}'.format(S3_BUCKET_TRANSFORMED_DATA, 'cpc'),
-        }
+    create_emr_cluster = EmrCreateJobFlowOperator(
+        task_id='create_emr_cluster',
+        aws_conn_id='aws_default',
+        emr_conn_id='emr_default'
+    )
+    job_flow_id="{{ task_instance.xcom_pull(task_ids='create_emr_cluster', key='return_value') }}"
+    
+    terminate_emr_cluster = EmrTerminateJobFlowOperator(
+        task_id='terminate_emr_cluster',
+        job_flow_id=job_flow_id,
+        aws_conn_id='aws_default'
     )
 
-    start_dag >> render_params
-
-    # # job_flow_id="{{ task_instance.xcom_pull(task_ids='create_emr_cluster', key='return_value') }}"
-    # job_flow_id = 'j-UJKNIDI7P4N7'
-
-    # # create_emr_cluster = EmrCreateJobFlowOperator(
-    # #     task_id='create_emr_cluster',
-    # #     aws_conn_id='aws_default',
-    # #     emr_conn_id='emr_default'
-    # # )
     # create_emr_cluster = DummyOperator(
     #     task_id='create_emr_cluster',
     # )
+    # job_flow_id = 'j-2L9SK0W463HO5'
 
-    # step_adder = EmrAddStepsOperator(
-    #     task_id='add_steps',
-    #     job_flow_id=job_flow_id,
-    #     aws_conn_id='aws_default',
-    #     steps=SPARK_STEPS,
-    #     params={
-    #         'python_dependencies': 's3://patents-spark-scripts-us-east-2/parse_entity_from_raw_patents.py',
-    #         's3_input': 's3://{}/{}/{}'.format(S3_BUCKET_DATA, '{{ next_ds }}', '*.json'),
-    #         'patent_s3_script': 's3://{}/{}'.format(S3_BUCKET_SCRIPTS, 'parse_patent_from_raw_patents.py'),
-    #         'patent_s3_output': 's3://{}/{}'.format(S3_BUCKET_TRANSFORMED_DATA, 'patent'),
-    #         'inventor_s3_script': 's3://{}/{}'.format(S3_BUCKET_SCRIPTS, 'parse_inventor_from_raw_patents.py'),
-    #         'inventor_s3_output': 's3://{}/{}'.format(S3_BUCKET_TRANSFORMED_DATA, 'inventor'),
-    #         'assignee_s3_script': 's3://{}/{}'.format(S3_BUCKET_SCRIPTS, 'parse_assignee_from_raw_patents.py'),
-    #         'assignee_s3_output': 's3://{}/{}'.format(S3_BUCKET_TRANSFORMED_DATA, 'assignee'),
-    #         'cpc_s3_script': 's3://{}/{}'.format(S3_BUCKET_SCRIPTS, 'parse_cpc_from_raw_patents.py'),
-    #         'cpc_s3_output': 's3://{}/{}'.format(S3_BUCKET_TRANSFORMED_DATA, 'cpc'),
-    #     }
+    # terminate_emr_cluster = DummyOperator(
+    #     task_id='terminate_emr_cluster',
     # )
 
-    # # wait for the steps to complete
-    # last_step = len(SPARK_STEPS) - 1
-    # step_checker = EmrStepSensor(
-    #     task_id='watch_step',
-    #     job_flow_id=job_flow_id,
-    #     step_id="{{ task_instance.xcom_pull(task_ids='add_steps', key='return_value')[" + str(last_step) + "] }}",
-    #     aws_conn_id='aws_default'
-    # )
+    # create DAG for each entity
+    for key, file in SPARK_FILES.items():
+        # add initial steps
+        entity_task_list = [start_dag]
 
-    # # Terminate the EMR cluster
-    # # terminate_emr_cluster = EmrTerminateJobFlowOperator(
-    # #     task_id="terminate_emr_cluster",
-    # #     job_flow_id=job_flow_id,
-    # #     aws_conn_id="aws_default"
-    # # )
+        # load spark script to s3
+        load_spark_script_to_s3 = LocalToS3Operator(
+            task_id='load_spark_script_{}_to_s3'.format(key),
+            s3_conn_id='',  # set in environment variable
+            s3_bucket=S3_BUCKET_SCRIPTS,
+            s3_key=file['s3_key'],
+            local_file_path=file['local_file_path'],
+            replace=True
+        )
+        entity_task_list.append(load_spark_script_to_s3)
 
-    # # upload all spark files to s3
-    # for key, files in SPARK_FILES.items():
-    #     # add initial steps
-    #     entity_task_list = [start_dag]
+        # start emr cluster
+        entity_task_list.append(create_emr_cluster)
 
-    #     # add entity specific steps
-    #     load_spark_script_to_s3 = LocalToS3Operator(
-    #         task_id='load_spark_script_{}_to_s3'.format(key),
-    #         s3_conn_id='',  # set in environment variable
-    #         s3_bucket=S3_BUCKET_SCRIPTS,
-    #         s3_key=files['s3_key'],
-    #         local_file_path=files['local_file_path'],
-    #         replace=True
-    #     )
+        # if file is related to a spark step, then create additional tasks in DAG
+        if file['spark_step_args']:
+            # render spark step
+            render_spark_step = PythonOperator (
+                task_id='render_spark_step_{}'.format(key),
+                python_callable=render_spark_step_func,
+                provide_context=True,
+                op_kwargs={
+                    'name': file['spark_step_args']['name'],
+                    'python_dependencies': file['spark_step_args']['python_dependencies'],
+                    's3_input': file['spark_step_args']['s3_input'],
+                    's3_script': file['spark_step_args']['s3_script'],
+                    's3_output': file['spark_step_args']['s3_output']
+                }
+            )
+            entity_task_list.append(render_spark_step)
 
-    #     entity_task_list.append(load_spark_script_to_s3)
+            # add spark step to emr
+            add_step = EmrAddStepsOperator(
+                task_id='add_step_{}'.format(key),
+                job_flow_id=job_flow_id,
+                aws_conn_id='aws_default',
+                steps="{{ task_instance.xcom_pull(task_ids='" + 'render_spark_step_{}'.format(key) + "', key='return_value') }}",
+            )
+            entity_task_list.append(add_step)
 
-    #     # add final steps
-    #     # entity_task_list.extend([create_emr_cluster, step_adder, step_checker, terminate_emr_cluster])
-    #     entity_task_list.extend([create_emr_cluster, step_adder, step_checker])
+            # wait for the step to complete
+            watch_step = EmrStepSensor(
+                task_id='watch_step_{}'.format(key),
+                job_flow_id=job_flow_id,
+                step_id="{{ task_instance.xcom_pull(task_ids='" + 'add_step_{}'.format(key) + "', key='return_value')[0] }}",
+                aws_conn_id='aws_default'
+            )
+            entity_task_list.append(watch_step)
 
-    #     # build a dependency chain for the entity using entity_task_list
-    #     chain(*entity_task_list)
+        # add final steps
+        entity_task_list.append(terminate_emr_cluster)
+
+        # build a dependency chain for the entity using entity_task_list
+        chain(*entity_task_list)
 
 
