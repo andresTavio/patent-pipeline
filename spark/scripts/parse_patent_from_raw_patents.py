@@ -4,7 +4,7 @@ from pyspark.sql.functions import explode
 import os
 import argparse
 
-def parse_patents_from_raw_patents(input_file, output_file):
+def parse_patents_from_raw_patents(input_file, output_file, db_table):
     spark = SparkSession \
         .builder \
         .appName('Parse patents from raw patents') \
@@ -29,11 +29,24 @@ def parse_patents_from_raw_patents(input_file, output_file):
     drop_list = [name for name, dtype in df_exploded.dtypes if 'array' in dtype]
     df_exploded = df_exploded.drop(*drop_list)
 
-    df_exploded.write.mode("overwrite").json(output_file)
+    # df_exploded.write.mode("overwrite").json(output_file)
+
+    # write to db
+    df_exploded.write.format('jdbc') \
+        .mode('append') \
+        .options(
+            url=os.environ['POSTGRES_SPARK_URL'],
+            dbtable=db_table,
+            user=os.environ['POSTGRES_SPARK_USER'],
+            password=os.environ['POSTGRES_SPARK_PASSWORD'],
+            driver='org.postgresql.Driver') \
+        .save()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--input")
     parser.add_argument("--output")
+    parser.add_argument("--db_table")
     args = parser.parse_args()
-    parse_patents_from_raw_patents(args.input, args.output)
+    
+    parse_patents_from_raw_patents(args.input, args.output, args.db_table)
