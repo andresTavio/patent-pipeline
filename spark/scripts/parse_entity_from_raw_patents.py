@@ -3,7 +3,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import explode
 import os
 
-def parse(input_file, output_file, column_field_name, column_prefix_to_remove, column_duplicates):
+def parse(input_file, output_file, column_field_name, column_prefix_to_remove, column_duplicates, db_table):
     # build spark session
     spark = SparkSession \
             .builder \
@@ -31,21 +31,15 @@ def parse(input_file, output_file, column_field_name, column_prefix_to_remove, c
     df_entity = df_entity.dropDuplicates(column_duplicates)
 
     # write output
-    df_entity.write.mode("overwrite").json(output_file)
-
-    # spark = SparkSession \
-    #     .builder \
-    #     .master('local[*]') \
-    #     .appName('Python Spark SQL transform patents') \
-    #     .config('spark.jars', os.environ['SPARK_POSTGRES_DRIVER_LOCATION']) \
-    #     .getOrCreate()
+    # df_entity.write.mode("overwrite").json(output_file)
 
     # write to db
-    # df_entity.write.format('jdbc') \
-    #     .options(
-    #         url=os.environ['POSTGRES_URL'],
-    #         dbtable=db_table,
-    #         user=os.environ['POSTGRES_USER'],
-    #         password=os.environ['POSTGRES_PASSWORD'],
-    #         driver='org.postgresql.Driver') \
-    #     .save()
+    df_entity.write.format('jdbc') \
+        .mode('append') \
+        .options(
+            url=os.environ['POSTGRES_SPARK_URL'],
+            dbtable=db_table,
+            user=os.environ['POSTGRES_SPARK_USER'],
+            password=os.environ['POSTGRES_SPARK_PASSWORD'],
+            driver='org.postgresql.Driver') \
+        .save()

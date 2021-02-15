@@ -15,9 +15,9 @@
         {
             "Classification": "spark-defaults",
             "Properties": {
-                "spark.yarn.appMasterEnv.POSTGRES_SPARK_USER": "postgres",
-                "spark.yarn.appMasterEnv.POSTGRES_SPARK_PASSWORD": "BP3cyJiNypFT5Bm",
-                "spark.yarn.appMasterEnv.POSTGRES_SPARK_URL": "jdbc:postgresql://patents-1.cwncapc6wh2k.us-east-2.rds.amazonaws.com:5432/patents"
+                "spark.yarn.appMasterEnv.POSTGRES_SPARK_USER": "user",
+                "spark.yarn.appMasterEnv.POSTGRES_SPARK_PASSWORD": "password",
+                "spark.yarn.appMasterEnv.POSTGRES_SPARK_URL": "url"
             }
         }
     ],
@@ -44,5 +44,5 @@
     "JobFlowRole": "EMR_EC2_DefaultRole",
     "ServiceRole": "EMR_DefaultRole",
     "VisibleToAllUsers": true,
-    "LogUri": "s3://aws-logs-628147927448-us-east-2/elasticmapreduce/"
+    "LogUri": "s3://log-bucket"
 }
