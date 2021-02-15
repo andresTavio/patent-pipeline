@@ -17,22 +17,23 @@ default_args = {
 
 BASE_DIR = pathlib.Path().cwd()
 FILES_DIR = BASE_DIR.joinpath('files')
+CURRENT_DATE = datetime.now().strftime('%Y-%m-%d')
 EXECUTION_DATE = '{{ next_ds }}'
+FILE_DATE = '{}/{}'.format(CURRENT_DATE, EXECUTION_DATE)
 S3_BUCKET = 'raw-patents-us-east-2'
 LOCAL_FILE_DIRECTORY_FULL_PATH = '{}/{}'.format(FILES_DIR.resolve(), 'patents')
 FILES = {'raw_patents': {'file_name': 'raw_patents.json'}}
-FILES = construct_files_dict(FILES, EXECUTION_DATE, LOCAL_FILE_DIRECTORY_FULL_PATH)
+FILES = construct_files_dict(FILES, FILE_DATE, LOCAL_FILE_DIRECTORY_FULL_PATH)
 QUERY_FILE_PATH = FILES_DIR.joinpath('patents_query.json').resolve()
 
 with DAG('extract_patents',
          default_args=default_args,
          schedule_interval='@quarterly',
-         catchup=False,
-         max_active_runs=1) as dag:
+         catchup=False) as dag:
 
     create_local_file_directory = BashOperator(
         task_id='create_local_file_directory',
-        bash_command='mkdir -p {}/{}'.format(LOCAL_FILE_DIRECTORY_FULL_PATH, EXECUTION_DATE)
+        bash_command='mkdir -p {}/{}'.format(LOCAL_FILE_DIRECTORY_FULL_PATH, FILE_DATE)
     )
 
     extract_patents = PatentsToLocalOperator(
