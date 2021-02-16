@@ -6,21 +6,18 @@ from airflow.providers.amazon.aws.operators.emr_terminate_job_flow import EmrTer
 from airflow.operators.python_operator import PythonOperator
 from operators.local_to_s3 import LocalToS3Operator
 from scripts.dag_util import construct_files_dict_no_date
+from config.patents_config import (S3_BUCKET_RAW_DATA,
+                                   S3_BUCKET_TRANSFORMED_DATA,
+                                   S3_BUCKET_SCRIPTS,
+                                   CURRENT_DATE,
+                                   EXECUTION_DATE,
+                                   LOCAL_FILE_PATH_SPARK_SCRIPTS)
 import pathlib
 from datetime import datetime
 from airflow.utils.helpers import chain
 from airflow.operators.dummy import DummyOperator
 
-BASE_DIR = pathlib.Path().cwd()
-SPARK_SCRIPTS_DIR = BASE_DIR.joinpath('spark/scripts')
-LOCAL_FILE_DIRECTORY_FULL_PATH = SPARK_SCRIPTS_DIR.resolve()
 
-S3_BUCKET_SCRIPTS = 'patents-spark-scripts-us-east-2'
-S3_BUCKET_DATA = 'raw-patents-us-east-2/2021-01-11'
-S3_BUCKET_TRANSFORMED_DATA = 'transformed-patents-us-east-2'
-
-# EXECUTION_DATE = '{{ next_ds }}'
-EXECUTION_DATE = '2019*'
 SPARK_FILES = {
     'parse_patent_from_raw_patents': {
         'file_name': 'parse_patent_from_raw_patents.py',
@@ -28,7 +25,7 @@ SPARK_FILES = {
             'name': 'Parse patent from raw patents',
             'python_dependencies': 's3://patents-spark-scripts-us-east-2/parse_entity_from_raw_patents.py',
             'jars': 's3://patents-spark-scripts-us-east-2/postgresql-42.2.18.jar',
-            's3_input': 's3://{}/{}/{}'.format(S3_BUCKET_DATA, EXECUTION_DATE, '*.json'),
+            's3_input': 's3://{}/{}/{}'.format(S3_BUCKET_RAW_DATA, f'{CURRENT_DATE}/{EXECUTION_DATE}', '*.json'),
             's3_script': 's3://{}/{}'.format(S3_BUCKET_SCRIPTS, 'parse_patent_from_raw_patents.py'),
             's3_output': 's3://{}/{}'.format(S3_BUCKET_TRANSFORMED_DATA, 'patent'),
             'db_table': 'patent'
@@ -40,7 +37,7 @@ SPARK_FILES = {
             'name': 'Parse inventor from raw patents',
             'python_dependencies': 's3://patents-spark-scripts-us-east-2/parse_entity_from_raw_patents.py',
             'jars': 's3://patents-spark-scripts-us-east-2/postgresql-42.2.18.jar',
-            's3_input': 's3://{}/{}/{}'.format(S3_BUCKET_DATA, EXECUTION_DATE, '*.json'),
+            's3_input': 's3://{}/{}/{}'.format(S3_BUCKET_RAW_DATA, f'{CURRENT_DATE}/{EXECUTION_DATE}', '*.json'),
             's3_script': 's3://{}/{}'.format(S3_BUCKET_SCRIPTS, 'parse_inventor_from_raw_patents.py'),
             's3_output': 's3://{}/{}'.format(S3_BUCKET_TRANSFORMED_DATA, 'inventor'),
             'db_table': 'inventor'
@@ -52,7 +49,7 @@ SPARK_FILES = {
             'name': 'Parse assignee from raw patents',
             'python_dependencies': 's3://patents-spark-scripts-us-east-2/parse_entity_from_raw_patents.py',
             'jars': 's3://patents-spark-scripts-us-east-2/postgresql-42.2.18.jar',
-            's3_input': 's3://{}/{}/{}'.format(S3_BUCKET_DATA, EXECUTION_DATE, '*.json'),
+            's3_input': 's3://{}/{}/{}'.format(S3_BUCKET_RAW_DATA, f'{CURRENT_DATE}/{EXECUTION_DATE}', '*.json'),
             's3_script': 's3://{}/{}'.format(S3_BUCKET_SCRIPTS, 'parse_assignee_from_raw_patents.py'),
             's3_output': 's3://{}/{}'.format(S3_BUCKET_TRANSFORMED_DATA, 'assignee'),
             'db_table': 'assignee'
@@ -64,7 +61,7 @@ SPARK_FILES = {
             'name': 'Parse cpc from raw patents',
             'python_dependencies': 's3://patents-spark-scripts-us-east-2/parse_entity_from_raw_patents.py',
             'jars': 's3://patents-spark-scripts-us-east-2/postgresql-42.2.18.jar',
-            's3_input': 's3://{}/{}/{}'.format(S3_BUCKET_DATA, EXECUTION_DATE, '*.json'),
+            's3_input': 's3://{}/{}/{}'.format(S3_BUCKET_RAW_DATA, f'{CURRENT_DATE}/{EXECUTION_DATE}', '*.json'),
             's3_script': 's3://{}/{}'.format(S3_BUCKET_SCRIPTS, 'parse_cpc_from_raw_patents.py'),
             's3_output': 's3://{}/{}'.format(S3_BUCKET_TRANSFORMED_DATA, 'cpc'),
             'db_table': 'cpc'
@@ -75,7 +72,7 @@ SPARK_FILES = {
         'spark_step_args': None
     }
 }
-SPARK_FILES = construct_files_dict_no_date(SPARK_FILES, LOCAL_FILE_DIRECTORY_FULL_PATH)
+SPARK_FILES = construct_files_dict_no_date(SPARK_FILES, LOCAL_FILE_PATH_SPARK_SCRIPTS)
 
 
 default_args = {
@@ -131,20 +128,20 @@ with DAG('transform_raw_patents',
     )
     job_flow_id="{{ task_instance.xcom_pull(task_ids='create_emr_cluster', key='return_value') }}"
     
-    # terminate_emr_cluster = EmrTerminateJobFlowOperator(
-    #     task_id='terminate_emr_cluster',
-    #     job_flow_id=job_flow_id,
-    #     aws_conn_id='aws_default'
-    # )
+    terminate_emr_cluster = EmrTerminateJobFlowOperator(
+        task_id='terminate_emr_cluster',
+        job_flow_id=job_flow_id,
+        aws_conn_id='aws_default'
+    )
 
     # create_emr_cluster = DummyOperator(
     #     task_id='create_emr_cluster',
     # )
     # job_flow_id = 'j-1Y8VT7B2BF13B'
 
-    terminate_emr_cluster = DummyOperator(
-        task_id='terminate_emr_cluster',
-    )
+    # terminate_emr_cluster = DummyOperator(
+    #     task_id='terminate_emr_cluster',
+    # )
 
     # create DAG for each entity
     for key, file in SPARK_FILES.items():
