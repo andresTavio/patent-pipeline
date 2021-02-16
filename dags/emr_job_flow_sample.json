@@ -11,6 +11,14 @@
                     "Properties": {"PYSPARK_PYTHON": "/usr/bin/python3"}
                 }
             ]
+        },
+        {
+            "Classification": "spark-defaults",
+            "Properties": {
+                "spark.yarn.appMasterEnv.POSTGRES_SPARK_USER": "user",
+                "spark.yarn.appMasterEnv.POSTGRES_SPARK_PASSWORD": "password",
+                "spark.yarn.appMasterEnv.POSTGRES_SPARK_URL": "url"
+            }
         }
     ],
     "Instances": {
@@ -36,5 +44,5 @@
     "JobFlowRole": "EMR_EC2_DefaultRole",
     "ServiceRole": "EMR_DefaultRole",
     "VisibleToAllUsers": true,
-    "LogUri": "s3://aws-logs-628147927448-us-east-2/elasticmapreduce/"
+    "LogUri": "s3://log-bucket"
 }
