@@ -1,5 +1,7 @@
 # patent-pipeline
 
+Authored by Andres Tavio (https://github.com/andresTavio) and Wyatt Shapiro (https://github.com/wyattshapiro)
+
 ## Purpose
 
 Build a pipeline to analyze open patent data from US Patent and Trademark Office.
