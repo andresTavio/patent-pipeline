@@ -10,3 +10,5 @@ spark/files
 !spark/files/raw_patents.json
 *.jar
 _SUCCESS
+dags/emr_job_flow.json
+dags/config

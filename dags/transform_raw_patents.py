@@ -6,29 +6,29 @@ from airflow.providers.amazon.aws.operators.emr_terminate_job_flow import EmrTer
 from airflow.operators.python_operator import PythonOperator
 from operators.local_to_s3 import LocalToS3Operator
 from scripts.dag_util import construct_files_dict_no_date
+from config.patents_config import (S3_BUCKET_RAW_DATA,
+                                   S3_BUCKET_TRANSFORMED_DATA,
+                                   S3_BUCKET_SCRIPTS,
+                                   CURRENT_DATE,
+                                   EXECUTION_DATE,
+                                   LOCAL_FILE_PATH_SPARK_SCRIPTS)
 import pathlib
 from datetime import datetime
 from airflow.utils.helpers import chain
 from airflow.operators.dummy import DummyOperator
 
-BASE_DIR = pathlib.Path().cwd()
-SPARK_SCRIPTS_DIR = BASE_DIR.joinpath('spark/scripts')
-LOCAL_FILE_DIRECTORY_FULL_PATH = SPARK_SCRIPTS_DIR.resolve()
 
-S3_BUCKET_SCRIPTS = 'patents-spark-scripts-us-east-2'
-S3_BUCKET_DATA = 'raw-patents-us-east-2'
-S3_BUCKET_TRANSFORMED_DATA = 'transformed-patents-us-east-2'
-
-EXECUTION_DATE = '{{ next_ds }}'
 SPARK_FILES = {
     'parse_patent_from_raw_patents': {
         'file_name': 'parse_patent_from_raw_patents.py',
         'spark_step_args': {
             'name': 'Parse patent from raw patents',
             'python_dependencies': 's3://patents-spark-scripts-us-east-2/parse_entity_from_raw_patents.py',
-            's3_input': 's3://{}/{}/{}'.format(S3_BUCKET_DATA, EXECUTION_DATE, '*.json'),
+            'jars': 's3://patents-spark-scripts-us-east-2/postgresql-42.2.18.jar',
+            's3_input': 's3://{}/{}/{}'.format(S3_BUCKET_RAW_DATA, f'{CURRENT_DATE}/{EXECUTION_DATE}', '*.json'),
             's3_script': 's3://{}/{}'.format(S3_BUCKET_SCRIPTS, 'parse_patent_from_raw_patents.py'),
             's3_output': 's3://{}/{}'.format(S3_BUCKET_TRANSFORMED_DATA, 'patent'),
+            'db_table': 'patent'
         }
     },
     'parse_inventor_from_raw_patents': {
@@ -36,9 +36,11 @@ SPARK_FILES = {
         'spark_step_args': {
             'name': 'Parse inventor from raw patents',
             'python_dependencies': 's3://patents-spark-scripts-us-east-2/parse_entity_from_raw_patents.py',
-            's3_input': 's3://{}/{}/{}'.format(S3_BUCKET_DATA, EXECUTION_DATE, '*.json'),
+            'jars': 's3://patents-spark-scripts-us-east-2/postgresql-42.2.18.jar',
+            's3_input': 's3://{}/{}/{}'.format(S3_BUCKET_RAW_DATA, f'{CURRENT_DATE}/{EXECUTION_DATE}', '*.json'),
             's3_script': 's3://{}/{}'.format(S3_BUCKET_SCRIPTS, 'parse_inventor_from_raw_patents.py'),
             's3_output': 's3://{}/{}'.format(S3_BUCKET_TRANSFORMED_DATA, 'inventor'),
+            'db_table': 'inventor'
         }
     },
     'parse_assignee_from_raw_patents': {
@@ -46,9 +48,11 @@ SPARK_FILES = {
         'spark_step_args': {
             'name': 'Parse assignee from raw patents',
             'python_dependencies': 's3://patents-spark-scripts-us-east-2/parse_entity_from_raw_patents.py',
-            's3_input': 's3://{}/{}/{}'.format(S3_BUCKET_DATA, EXECUTION_DATE, '*.json'),
+            'jars': 's3://patents-spark-scripts-us-east-2/postgresql-42.2.18.jar',
+            's3_input': 's3://{}/{}/{}'.format(S3_BUCKET_RAW_DATA, f'{CURRENT_DATE}/{EXECUTION_DATE}', '*.json'),
             's3_script': 's3://{}/{}'.format(S3_BUCKET_SCRIPTS, 'parse_assignee_from_raw_patents.py'),
             's3_output': 's3://{}/{}'.format(S3_BUCKET_TRANSFORMED_DATA, 'assignee'),
+            'db_table': 'assignee'
         }
     },
     'parse_cpc_from_raw_patents': {
@@ -56,9 +60,11 @@ SPARK_FILES = {
         'spark_step_args': {
             'name': 'Parse cpc from raw patents',
             'python_dependencies': 's3://patents-spark-scripts-us-east-2/parse_entity_from_raw_patents.py',
-            's3_input': 's3://{}/{}/{}'.format(S3_BUCKET_DATA, EXECUTION_DATE, '*.json'),
+            'jars': 's3://patents-spark-scripts-us-east-2/postgresql-42.2.18.jar',
+            's3_input': 's3://{}/{}/{}'.format(S3_BUCKET_RAW_DATA, f'{CURRENT_DATE}/{EXECUTION_DATE}', '*.json'),
             's3_script': 's3://{}/{}'.format(S3_BUCKET_SCRIPTS, 'parse_cpc_from_raw_patents.py'),
-            's3_output': 's3://{}/{}'.format(S3_BUCKET_TRANSFORMED_DATA, 'cpc')
+            's3_output': 's3://{}/{}'.format(S3_BUCKET_TRANSFORMED_DATA, 'cpc'),
+            'db_table': 'cpc'
         }
     },
     'parse_entity_from_raw_patents': {
@@ -66,7 +72,7 @@ SPARK_FILES = {
         'spark_step_args': None
     }
 }
-SPARK_FILES = construct_files_dict_no_date(SPARK_FILES, LOCAL_FILE_DIRECTORY_FULL_PATH)
+SPARK_FILES = construct_files_dict_no_date(SPARK_FILES, LOCAL_FILE_PATH_SPARK_SCRIPTS)
 
 
 default_args = {
@@ -89,11 +95,15 @@ def render_spark_step_func(**kwargs):
                 'cluster',
                 '--py-files',
                 kwargs['python_dependencies'],
+                '--jars',
+                kwargs['jars'],
                 kwargs['s3_script'],
                 '--input',
                 kwargs['s3_input'],
                 '--output',
-                kwargs['s3_output']
+                kwargs['s3_output'],
+                '--db_table',
+                kwargs['db_table']
             ]
         }
     }
@@ -127,7 +137,7 @@ with DAG('transform_raw_patents',
     # create_emr_cluster = DummyOperator(
     #     task_id='create_emr_cluster',
     # )
-    # job_flow_id = 'j-2L9SK0W463HO5'
+    # job_flow_id = 'j-1Y8VT7B2BF13B'
 
     # terminate_emr_cluster = DummyOperator(
     #     task_id='terminate_emr_cluster',
@@ -162,9 +172,11 @@ with DAG('transform_raw_patents',
                 op_kwargs={
                     'name': file['spark_step_args']['name'],
                     'python_dependencies': file['spark_step_args']['python_dependencies'],
+                    'jars': file['spark_step_args']['jars'],
                     's3_input': file['spark_step_args']['s3_input'],
                     's3_script': file['spark_step_args']['s3_script'],
-                    's3_output': file['spark_step_args']['s3_output']
+                    's3_output': file['spark_step_args']['s3_output'],
+                    'db_table': file['spark_step_args']['db_table']
                 }
             )
             entity_task_list.append(render_spark_step)
