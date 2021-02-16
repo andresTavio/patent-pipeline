@@ -11,4 +11,4 @@ spark/files
 *.jar
 _SUCCESS
 dags/emr_job_flow.json
-dags/config
+dags/config/patents_config.py
