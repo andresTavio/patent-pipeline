@@ -220,6 +220,8 @@ with DAG('transform_raw_patents',
 
         # if file has sql quality steps, then create additional tasks in DAG
         if file['sql_step_args']:
+            # must drop duplicates in table as spark jdbc does not support upsert
+            # https://issues.apache.org/jira/browse/SPARK-19335
             drop_table_duplicates = PostgresOperator(
                 task_id='drop_table_duplicates_{table}'.format(table=file['sql_step_args']['db_table']),
                 postgres_conn_id='postgres_default',
